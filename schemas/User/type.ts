@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from "type-graphql";
+import { Authorized, Field, ID, ObjectType } from "type-graphql";
 import { UserRole } from "../enum";
 import Plan from "../Plan/type";
 import Task from "../Task/type";
@@ -14,6 +14,7 @@ export default class User {
   @Field()
   email!: string;
 
+  @Authorized(UserRole.ADMIN)
   @Field()
   password!: string;
 

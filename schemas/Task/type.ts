@@ -21,6 +21,8 @@ export default class Task {
   @Field((type) => [User!], { nullable: true })
   participators?: User[];
 
+  // TODO: participators 數量
+
   participatorsIds?: User["id"][];
 
   @Field({ nullable: true })
@@ -32,8 +34,12 @@ export default class Task {
   @Field((type) => [Comment!], { nullable: true })
   comments?: Comment[];
 
+  // TODO: comments 數量
+
   @Field((type) => TaskStatus)
   status!: TaskStatus;
+
+  // TODO: status 列舉
 
   @Field(() => Plan)
   plan!: Plan;

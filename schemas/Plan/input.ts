@@ -2,16 +2,16 @@ import { Field, ID, InputType } from "type-graphql";
 import User from "../User/type";
 import Plan from "./type";
 
-@InputType()
-export class AddPlanInput implements Partial<Plan> {
+@InputType("PlanAddInput")
+export class AddInput implements Partial<Plan> {
   @Field((type) => ID)
   creatorId!: User["id"];
   @Field({ nullable: true })
   description?: string;
 }
 
-@InputType()
-export class ModifyPlanInput implements Partial<Plan> {
+@InputType("PlanSetterInput")
+export class SetterInput implements Partial<Plan> {
   @Field({ nullable: true })
   isFavorite?: boolean;
   @Field({ nullable: true })

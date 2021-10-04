@@ -2,8 +2,8 @@ import { Field, ID, InputType } from "type-graphql";
 import { TaskStatus } from "../enum";
 import Task from "./type";
 
-@InputType()
-export class AddTaskInput implements Partial<Task> {
+@InputType("TaskAddInput")
+export class AddInput implements Partial<Task> {
   @Field()
   title!: string;
 
@@ -14,8 +14,8 @@ export class AddTaskInput implements Partial<Task> {
   planId!: string;
 }
 
-@InputType()
-export class ModifyTaskInput implements Partial<Task> {
+@InputType("TaskSetterInput")
+export class SetterInput implements Partial<Task> {
   @Field({ nullable: true })
   title?: string;
 

@@ -12,11 +12,12 @@ import { Service } from "typedi";
 import { Context, CustomJwtPayload, privateKey } from "../..";
 import PlanService from "../Plan/service";
 import TaskService from "../Task/service";
-import { ModifyUserInput, RegisterUserInput } from "./input";
+import { SettingInput, RegisterInput } from "./input";
 import { LoginPayload } from "./payload";
 import UserService from "./service";
 import User from "./type";
 import jwt from "jsonwebtoken";
+import { UserRole } from "../enum";
 
 @Service()
 @Resolver((of) => User)
@@ -27,24 +28,45 @@ export default class UserResolver {
     private readonly taskService: TaskService
   ) {}
 
+  @Authorized()
+  @Query((returns) => User)
+  async me(@Ctx() ctx: Context) {
+    if (!ctx.user?.id) {
+      throw new Error("Context not have user");
+    }
+    return this.userService.getOne(ctx.user.id);
+  }
+
+  @Authorized()
   @Query((returns) => User)
   async user(@Arg("userId") id: string) {
     return this.userService.getOne(id);
   }
+
+  // TODO: 數量限制 收尋參數
+
   @Authorized()
   @Query((returns) => [User!])
   async users() {
     return this.userService.getAll();
   }
-  @Mutation((returns) => User)
-  async registerUser(@Arg("RegisterUserInput") args: RegisterUserInput) {
+
+  // TODO: Payload
+
+  @Mutation((returns) => User, { name: "userRegister" })
+  async register(@Arg("userRegisterInput") args: RegisterInput) {
     return this.userService.addUser(args);
   }
-  @Mutation((returns) => User)
-  async modifyUser(@Arg("ModifyUserInput") args: ModifyUserInput) {
+
+  // TODO: Payload
+
+  @Authorized()
+  @Mutation((returns) => User, { name: "userSetter" })
+  async setter(@Arg("ModifyUserInput") args: SettingInput) {
     return this.userService.updateUser(args);
   }
-  @Mutation((returns) => LoginPayload)
+
+  @Mutation((returns) => LoginPayload, { name: "userLogin" })
   async login(@Ctx() ctx: Context): Promise<LoginPayload> {
     const { authorization } = ctx.req.headers;
 
@@ -90,6 +112,9 @@ export default class UserResolver {
     };
   }
 
+  // TODO: 數量限制
+
+  @Authorized()
   @FieldResolver()
   async plans(@Root() root: User) {
     const { id } = root;
@@ -99,6 +124,9 @@ export default class UserResolver {
     return allPlans.filter((item) => item.membersIds.includes(id));
   }
 
+  // TODO: 數量限制
+
+  @Authorized()
   @FieldResolver()
   async tasks(@Root() root: User) {
     const { id } = root;
@@ -106,5 +134,21 @@ export default class UserResolver {
     const allTasks = await this.taskService.getAll();
 
     return allTasks.filter((item) => item.participatorsIds?.includes(id));
+  }
+
+  @Authorized()
+  @FieldResolver()
+  async authToken(@Root() root: User) {
+    const { id, name, roles } = root;
+
+    const payload: CustomJwtPayload = {
+      sub: id,
+      name: name || "",
+      roles: roles,
+    };
+
+    const token = jwt.sign(payload, privateKey, { expiresIn: "30d" });
+
+    return token;
   }
 }

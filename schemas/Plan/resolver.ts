@@ -1,5 +1,6 @@
 import {
   Arg,
+  Authorized,
   FieldResolver,
   Mutation,
   Query,
@@ -7,9 +8,10 @@ import {
   Root,
 } from "type-graphql";
 import { Service } from "typedi";
+import { UserRole } from "../enum";
 import TaskService from "../Task/service";
 import UserService from "../User/service";
-import { AddPlanInput, ModifyPlanInput } from "./input";
+import { AddInput, SetterInput } from "./input";
 import PlanService from "./service";
 import Plan from "./type";
 
@@ -22,41 +24,50 @@ export default class PlanResolver {
     private readonly taskService: TaskService
   ) {}
 
+  @Authorized()
   @Query((returns) => Plan)
   async plan(@Arg("planId") id: string) {
     return this.planService.getOne(id);
   }
 
+  // TODO: 限制數量 收尋
+  @Authorized()
   @Query((returns) => [Plan!])
   async plans() {
     return this.planService.getAll();
   }
 
-  @Mutation((returns) => Plan)
-  async addPlan(@Arg("AddPlanInput") args: AddPlanInput) {
+  @Authorized(UserRole.ADMIN, UserRole.MANAGER)
+  @Mutation((returns) => Plan, { name: "planAdd" })
+  async add(@Arg("PlanAddInput") args: AddInput) {
     return this.planService.addPlan(args);
   }
 
-  @Mutation((returns) => Plan)
-  async ModifyPlan(@Arg("ModifyPlanInput") args: ModifyPlanInput) {
+  @Authorized(UserRole.ADMIN, UserRole.MANAGER)
+  @Mutation((returns) => Plan, { name: "planSetter" })
+  async setter(@Arg("PlanSetterInput") args: SetterInput) {
     return this.planService.updatePlan(args);
   }
 
-  @Mutation((returns) => Plan)
-  async removePlan(@Arg("planId") id: string) {
+  @Authorized(UserRole.ADMIN, UserRole.MANAGER)
+  @Mutation((returns) => Plan, { name: "planRemove" })
+  async remove(@Arg("planId") id: string) {
     return this.planService.removePlan(id);
   }
 
+  @Authorized()
   @FieldResolver()
   async creator(@Root() root: Plan) {
     return this.userService.getOne(root.creatorId);
   }
 
+  @Authorized()
   @FieldResolver()
   async members(@Root() root: Plan) {
     const { membersIds } = root;
     return Promise.all(membersIds.map((id) => this.userService.getOne(id)));
   }
+  @Authorized()
   @FieldResolver()
   async tasks(@Root() root: Plan) {
     const { id } = root;
