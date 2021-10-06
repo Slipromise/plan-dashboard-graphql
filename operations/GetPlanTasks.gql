@@ -1,0 +1,16 @@
+query GetPlanTasks($tasksPlanId: ID, $tasksBucket: String) {
+  tasks(planId: $tasksPlanId, bucket: $tasksBucket) {
+    title
+    id
+    description
+    participatorsLength
+    participators {
+      name
+      avatar
+    }
+    commentsLength
+    bucket
+    status
+    statusOptions
+  }
+}

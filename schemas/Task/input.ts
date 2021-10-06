@@ -16,6 +16,9 @@ export class AddInput implements Partial<Task> {
 
 @InputType("TaskSetterInput")
 export class SetterInput implements Partial<Task> {
+  @Field((type) => ID)
+  id!: string;
+
   @Field({ nullable: true })
   title?: string;
 

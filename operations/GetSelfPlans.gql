@@ -1,0 +1,14 @@
+query GetSelfPlans($plansSize: Float, $plansCursorId: ID) {
+  me {
+    plans(size: $plansSize, cursorId: $plansCursorId) {
+      name
+      members {
+        name
+      }
+      description
+      isCurrent
+      isFavorite
+      id
+    }
+  }
+}

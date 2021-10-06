@@ -1,0 +1,20 @@
+query GetSelfTasks($tasksSize: Float, $tasksCursorId: ID) {
+  me {
+    tasks(size: $tasksSize, cursorId: $tasksCursorId) {
+      title
+      description
+      status
+      plan {
+        name
+      }
+      id
+      statusOptions
+      commentsLength
+      participatorsLength
+      participators {
+        name
+        avatar
+      }
+    }
+  }
+}

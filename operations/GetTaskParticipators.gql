@@ -1,0 +1,9 @@
+query GetTaskParticipators($taskTaskId: String!) {
+  task(taskId: $taskTaskId) {
+    participators {
+      name
+      avatar
+      id
+    }
+  }
+}

@@ -1,0 +1,10 @@
+query GetSidebarData($plansSize: Float, $plansCursorId: ID) {
+  me {
+    name
+    avatar
+    plans(size: $plansSize, cursorId: $plansCursorId) {
+      name
+      id
+    }
+  }
+}

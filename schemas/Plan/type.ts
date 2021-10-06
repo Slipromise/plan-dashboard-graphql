@@ -23,6 +23,7 @@ export default class Plan {
   @Field((type) => [Task!], { nullable: true })
   tasks?: Task[];
 
+  // TODO: 待使用
   @Field({ nullable: true })
   isFavorite?: boolean;
 

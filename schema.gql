@@ -3,6 +3,11 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+type BasePayload {
+  isSuccess: Boolean!
+  message: String
+}
+
 type Comment {
   content: String!
   creator: User!
@@ -18,15 +23,15 @@ input CommentAddInput {
 }
 
 type Mutation {
-  commentAdd(CommentAddInput: CommentAddInput!): Comment!
-  planAdd(PlanAddInput: PlanAddInput!): Plan!
-  planRemove(planId: String!): Plan!
-  planSetter(PlanSetterInput: PlanSetterInput!): Plan!
-  taskAdd(TaskAddInput: TaskAddInput!): Task!
-  taskSetter(SetterTaskInput: TaskSetterInput!): Task!
-  userLogin: UserLoginPayload!
-  userRegister(userRegisterInput: UserRegisterInput!): User!
-  userSetter(ModifyUserInput: UserSettingInput!): User!
+  commentAdd(CommentAddInput: CommentAddInput!): BasePayload!
+  planAdd(PlanAddInput: PlanAddInput!): BasePayload!
+  planRemove(planId: String!): BasePayload!
+  planSetter(PlanSetterInput: PlanSetterInput!): BasePayload!
+  taskAdd(TaskAddInput: TaskAddInput!): BasePayload!
+  taskSetter(SetterTaskInput: TaskSetterInput!): BasePayload!
+  userLogin(LoginInput: UserLoginInput!): UserLoginPayload!
+  userRegister(userRegisterInput: UserRegisterInput!): UserRegisterPayload!
+  userSetter(ModifyUserInput: UserSettingInput!): BasePayload!
 }
 
 type Plan {
@@ -42,39 +47,43 @@ type Plan {
 }
 
 input PlanAddInput {
-  creatorId: ID!
   description: String
+  name: String!
 }
 
 input PlanSetterInput {
   bucket: String
   description: String
+  id: ID!
   isFavorite: Boolean
   memberId: ID
 }
 
 type Query {
   comment(commentId: String!): Comment!
-  comments: [Comment!]!
+  comments(cursorId: ID, size: Int = 15, taskId: ID): [Comment!]!
   me: User!
   plan(planId: String!): Plan!
-  plans: [Plan!]!
+  plans(cursorId: ID, isCurrent: Boolean, isFavorite: Boolean, memberID: ID, name: String, size: Float): [Plan!]!
   task(taskId: String!): Task!
-  tasks: [Task!]!
+  tasks(bucket: String, cursorId: ID, planId: ID, size: Float = 15, status: TaskStatus, title: String, userId: ID): [Task!]!
   user(userId: String!): User!
-  users: [User!]!
+  users(email: String, name: String, size: Float = 10): [User!]!
 }
 
 type Task {
   bucket: String!
-  comments: [Comment!]
+  comments(cursorId: ID, size: Float = 15): [Comment!]
+  commentsLength: Float
   description: String
   endDate: String
   id: ID!
-  participators: [User!]
+  participators(size: Float = 5): [User!]
+  participatorsLength: Float
   plan: Plan!
   startDate: String
   status: TaskStatus!
+  statusOptions: [TaskStatus!]!
   title: String!
 }
 
@@ -88,6 +97,7 @@ input TaskSetterInput {
   bucket: String
   description: String
   endDate: String
+  id: ID!
   participatorsId: ID
   planId: ID
   startDate: String
@@ -111,20 +121,31 @@ type User {
   id: ID!
   name: String!
   password: String!
-  plans: [Plan!]
+  plans(cursorId: ID, size: Float = 20): [Plan!]
   roles: [UserRole!]!
-  tasks: [Task!]
+  tasks(cursorId: ID, size: Float = 20): [Task!]
+}
+
+input UserLoginInput {
+  email: String!
+  password: String!
 }
 
 type UserLoginPayload {
   isSuccess: Boolean!
-  message: String!
+  message: String
   token: String
 }
 
 input UserRegisterInput {
   email: String!
   password: String!
+}
+
+type UserRegisterPayload {
+  isSuccess: Boolean!
+  message: String
+  token: String
 }
 
 enum UserRole {

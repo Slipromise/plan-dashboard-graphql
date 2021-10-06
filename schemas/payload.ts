@@ -4,6 +4,6 @@ import { Field, ObjectType } from "type-graphql";
 export class BasePayload {
   @Field()
   isSuccess!: boolean;
-  @Field()
+  @Field({ nullable: true })
   message?: string;
 }

@@ -13,8 +13,9 @@ export default class TaskService {
 
   async getOne(id: string) {
     const found = this.tasks.find((item) => id === item.id);
+
     if (!found) {
-      throw new Error("Plan not found");
+      throw new Error("Task not found");
     }
     return found;
   }

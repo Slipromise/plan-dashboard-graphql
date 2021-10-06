@@ -1,0 +1,7 @@
+mutation Register($userRegisterInput: UserRegisterInput!) {
+  userRegister(userRegisterInput: $userRegisterInput) {
+    isSuccess
+    message
+    token
+  }
+}

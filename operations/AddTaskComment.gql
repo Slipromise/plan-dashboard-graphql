@@ -1,0 +1,6 @@
+mutation AddTaskComment($taskAddInput: TaskAddInput!) {
+  taskAdd(TaskAddInput: $taskAddInput) {
+    isSuccess
+    message
+  }
+}

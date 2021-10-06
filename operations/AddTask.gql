@@ -1,0 +1,6 @@
+mutation AddTask($taskAddInput: TaskAddInput!) {
+  taskAdd(TaskAddInput: $taskAddInput) {
+    isSuccess
+    message
+  }
+}

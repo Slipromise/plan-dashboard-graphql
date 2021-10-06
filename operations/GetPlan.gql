@@ -1,0 +1,11 @@
+query GetPlan($planId: String!) {
+  plan(planId: $planId) {
+    name
+    members {
+      name
+      avatar
+    }
+    id
+    buckets
+  }
+}

@@ -1,0 +1,14 @@
+query GetPlanMemberAndSearchUser($usersName: String, $planPlanId: String!) {
+  users(name: $usersName) {
+    name
+    avatar
+    id
+  }
+  plan(planId: $planPlanId) {
+    members {
+      id
+      name
+      avatar
+    }
+  }
+}

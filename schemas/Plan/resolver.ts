@@ -1,6 +1,8 @@
 import {
   Arg,
+  Args,
   Authorized,
+  Ctx,
   FieldResolver,
   Mutation,
   Query,
@@ -8,9 +10,12 @@ import {
   Root,
 } from "type-graphql";
 import { Service } from "typedi";
+import { Context } from "../..";
 import { UserRole } from "../enum";
+import { BasePayload } from "../payload";
 import TaskService from "../Task/service";
 import UserService from "../User/service";
+import { PlansArguments } from "./arguments";
 import { AddInput, SetterInput } from "./input";
 import PlanService from "./service";
 import Plan from "./type";
@@ -30,29 +35,80 @@ export default class PlanResolver {
     return this.planService.getOne(id);
   }
 
-  // TODO: 限制數量 收尋
+  // TODO: isCurrent isFavorite
   @Authorized()
   @Query((returns) => [Plan!])
-  async plans() {
-    return this.planService.getAll();
+  async plans(@Args() args: PlansArguments, @Ctx() ctx: Context) {
+    const { name, memberID, isCurrent, isFavorite } = args;
+
+    const { user } = ctx;
+
+    const targetId = memberID || user?.id;
+
+    let result = await this.planService.getAll();
+
+    result =
+      name || targetId
+        ? result.filter(
+            (item) =>
+              (!name || item.name.includes(name)) &&
+              (!targetId || item.membersIds.includes(targetId))
+          )
+        : !!targetId
+        ? result
+        : [];
+
+    return result;
   }
 
   @Authorized(UserRole.ADMIN, UserRole.MANAGER)
-  @Mutation((returns) => Plan, { name: "planAdd" })
-  async add(@Arg("PlanAddInput") args: AddInput) {
-    return this.planService.addPlan(args);
+  @Mutation((returns) => BasePayload, { name: "planAdd" })
+  async add(
+    @Arg("PlanAddInput") args: AddInput,
+    @Ctx() ctx: Context
+  ): Promise<BasePayload> {
+    const { user } = ctx;
+
+    if (!user) throw new Error("User is undefined");
+
+    user &&
+      this.planService.addPlan({
+        ...args,
+        creatorId: user.id,
+        membersIds: [user.id],
+      });
+
+    return {
+      isSuccess: true,
+    };
   }
 
   @Authorized(UserRole.ADMIN, UserRole.MANAGER)
-  @Mutation((returns) => Plan, { name: "planSetter" })
-  async setter(@Arg("PlanSetterInput") args: SetterInput) {
-    return this.planService.updatePlan(args);
+  @Mutation((returns) => BasePayload, { name: "planSetter" })
+  async setter(
+    @Arg("PlanSetterInput") args: SetterInput
+  ): Promise<BasePayload> {
+    const { isFavorite, memberId, ...otherArgs } = args;
+
+    const foundPlan = await this.planService.getOne(args.id);
+
+    const membersIds =
+      memberId && foundPlan.membersIds.includes(memberId)
+        ? foundPlan.membersIds.filter((item) => item !== memberId)
+        : memberId && foundPlan.membersIds.includes(memberId)
+        ? [...foundPlan.membersIds, memberId]
+        : undefined;
+
+    this.planService.updatePlan({ ...otherArgs, membersIds });
+
+    return { isSuccess: true };
   }
 
   @Authorized(UserRole.ADMIN, UserRole.MANAGER)
-  @Mutation((returns) => Plan, { name: "planRemove" })
-  async remove(@Arg("planId") id: string) {
-    return this.planService.removePlan(id);
+  @Mutation((returns) => BasePayload, { name: "planRemove" })
+  async remove(@Arg("planId") id: string): Promise<BasePayload> {
+    this.planService.removePlan(id);
+    return { isSuccess: true };
   }
 
   @Authorized()

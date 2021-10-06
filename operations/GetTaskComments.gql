@@ -1,0 +1,12 @@
+query GetTaskComments($taskTaskId: String!) {
+  task(taskId: $taskTaskId) {
+    comments {
+      content
+      id
+      date
+      creator {
+        name
+      }
+    }
+  }
+}

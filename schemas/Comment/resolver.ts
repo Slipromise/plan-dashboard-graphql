@@ -1,16 +1,20 @@
 import {
   Arg,
+  Args,
   Authorized,
+  Ctx,
   FieldResolver,
   Mutation,
   Query,
   Resolver,
-  ResolverInterface,
   Root,
 } from "type-graphql";
 import { Service } from "typedi";
+import { Context } from "../..";
+import { BasePayload } from "../payload";
 import TaskService from "../Task/service";
 import UserService from "../User/service";
+import { CommentsArguments } from "./arguments";
 import { AddInput } from "./input";
 import CommentService from "./service";
 import Comment from "./type";
@@ -30,19 +34,47 @@ export default class CommentResolver {
     return this.commentService.getOne(id);
   }
 
-  // TODO: 限制數量 收尋
   @Authorized()
   @Query((returns) => [Comment!])
-  async comments() {
-    return this.commentService.getAll();
+  async comments(@Args() args: CommentsArguments) {
+    const { taskId, size, cursorId } = args;
+    let result = await this.commentService.getAll();
+
+    result = taskId ? result.filter((item) => item.taskId === taskId) : result;
+
+    const foundIndex = cursorId
+      ? result.findIndex((item) => item.id === cursorId)
+      : undefined;
+
+    result =
+      size > 0 && foundIndex !== undefined
+        ? result.slice(foundIndex + 1, foundIndex + 1 + size)
+        : size < 0 && foundIndex !== undefined
+        ? result.reverse().slice(foundIndex + 1, foundIndex + 1 + size)
+        : result.slice(0, size);
+
+    return result;
   }
 
-  // TODO: 取得所有評論 pagination
-
   @Authorized()
-  @Mutation((returns) => Comment, { name: "commentAdd" })
-  async add(@Arg("CommentAddInput") args: AddInput) {
-    return this.commentService.add(args);
+  @Mutation((returns) => BasePayload, { name: "commentAdd" })
+  async add(
+    @Arg("CommentAddInput") arg: AddInput,
+    @Ctx() ctx: Context
+  ): Promise<BasePayload> {
+    const { user } = ctx;
+
+    user &&
+      this.commentService.add({
+        ...arg,
+        creatorId: user.id,
+        date: new Date().toISOString(),
+      });
+
+    return {
+      isSuccess: !!user,
+      message: !user ? "No user data" : undefined,
+    };
   }
 
   @Authorized()

@@ -1,0 +1,8 @@
+query GetSelfUser {
+  me {
+    name
+    email
+    avatar
+    roles
+  }
+}

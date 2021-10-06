@@ -1,0 +1,6 @@
+mutation SetTask($taskSetterInput: TaskSetterInput!) {
+  taskSetter(SetterTaskInput: $taskSetterInput) {
+    isSuccess
+    message
+  }
+}

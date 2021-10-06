@@ -1,0 +1,16 @@
+query GetPlanMemberAndTaskMember($planPlanId: String!, $taskTaskId: String!) {
+  plan(planId: $planPlanId) {
+    members {
+      name
+      avatar
+      id
+    }
+  }
+  task(taskId: $taskTaskId) {
+    participators {
+      name
+      avatar
+      id
+    }
+  }
+}
